@@ -338,9 +338,7 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
             View view = inflater.inflate(R.layout.first, null, false);
 
             TextView tvFirst = (TextView) view.findViewById(R.id.tvFirst);
-            TextView tvSubmit = (TextView) view.findViewById(R.id.tvSubmit);
             tvFirst.setMovementMethod(LinkMovementMethod.getInstance());
-            tvSubmit.setVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? View.VISIBLE : View.GONE);
 
             // Show dialog
             dialogFirst = new AlertDialog.Builder(this)

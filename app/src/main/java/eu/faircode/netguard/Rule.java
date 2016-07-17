@@ -71,7 +71,6 @@ public class Rule {
 
     public boolean apply = true;
     public boolean notify = true;
-    public boolean submit = true;
 
     public boolean relateduids = false;
     public String[] related = null;
@@ -225,7 +224,6 @@ public class Rule {
         SharedPreferences roaming = context.getSharedPreferences("roaming", Context.MODE_PRIVATE);
         SharedPreferences apply = context.getSharedPreferences("apply", Context.MODE_PRIVATE);
         SharedPreferences notify = context.getSharedPreferences("notify", Context.MODE_PRIVATE);
-        SharedPreferences submit = context.getSharedPreferences("submit", Context.MODE_PRIVATE);
         SharedPreferences history = context.getSharedPreferences("history", Context.MODE_PRIVATE);
 
         // Get settings
@@ -348,10 +346,6 @@ public class Rule {
 
                     rule.apply = apply.getBoolean(info.packageName, true);
                     rule.notify = notify.getBoolean(info.packageName, true);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                        rule.submit = submit.getBoolean(info.packageName, true);
-                    else
-                        rule.submit = false;
 
                     rule.last_modified = history.getLong(info.packageName + ":modified", 0);
                     rule.last_submitted = history.getLong(info.packageName + ":submitted", 0);

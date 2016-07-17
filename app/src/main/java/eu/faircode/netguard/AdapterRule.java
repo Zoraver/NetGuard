@@ -146,7 +146,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
         public ImageButton btnClearAccess;
 
         public CheckBox cbNotify;
-        public CheckBox cbSubmit;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -197,7 +196,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
             btnClearAccess = (ImageButton) itemView.findViewById(R.id.btnClearAccess);
 
             cbNotify = (CheckBox) itemView.findViewById(R.id.cbNotify);
-            cbSubmit = (CheckBox) itemView.findViewById(R.id.cbSubmit);
 
             final View wifiParent = (View) cbWifi.getParent();
             wifiParent.post(new Runnable() {
@@ -701,8 +699,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
                                     if (IAB.isPurchased(ActivityPro.SKU_FILTER, context)) {
                                         DatabaseHelper.getInstance(context).setAccess(id, 0);
                                         ServiceSinkhole.reload("allow host", context);
-                                        if (rule.submit)
-                                            ServiceJob.submit(rule, version, protocol, daddr, dport, 0, context);
                                     } else
                                         context.startActivity(new Intent(context, ActivityPro.class));
                                     return true;
@@ -711,8 +707,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
                                     if (IAB.isPurchased(ActivityPro.SKU_FILTER, context)) {
                                         DatabaseHelper.getInstance(context).setAccess(id, 1);
                                         ServiceSinkhole.reload("block host", context);
-                                        if (rule.submit)
-                                            ServiceJob.submit(rule, version, protocol, daddr, dport, 1, context);
                                     } else
                                         context.startActivity(new Intent(context, ActivityPro.class));
                                     return true;
@@ -720,8 +714,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
                                 case R.id.menu_reset:
                                     DatabaseHelper.getInstance(context).setAccess(id, -1);
                                     ServiceSinkhole.reload("reset host", context);
-                                    if (rule.submit)
-                                        ServiceJob.submit(rule, version, protocol, daddr, dport, -1, context);
                                     return true;
                             }
                             return false;
@@ -769,18 +761,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
                 updateRule(rule, true, listAll);
             }
         });
-
-        // Usage data sharing
-        holder.cbSubmit.setVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? View.VISIBLE : View.GONE);
-        holder.cbSubmit.setOnCheckedChangeListener(null);
-        holder.cbSubmit.setChecked(rule.submit);
-        holder.cbSubmit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                rule.submit = isChecked;
-                updateRule(rule, true, listAll);
-            }
-        });
     }
 
     private void updateRule(Rule rule, boolean root, List<Rule> listAll) {
@@ -791,7 +771,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
         SharedPreferences screen_other = context.getSharedPreferences("screen_other", Context.MODE_PRIVATE);
         SharedPreferences roaming = context.getSharedPreferences("roaming", Context.MODE_PRIVATE);
         SharedPreferences notify = context.getSharedPreferences("notify", Context.MODE_PRIVATE);
-        SharedPreferences submit = context.getSharedPreferences("submit", Context.MODE_PRIVATE);
         SharedPreferences history = context.getSharedPreferences("history", Context.MODE_PRIVATE);
 
         if (rule.wifi_blocked == rule.wifi_default)
@@ -829,11 +808,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
         else
             notify.edit().putBoolean(rule.info.packageName, rule.notify).apply();
 
-        if (rule.submit)
-            submit.edit().remove(rule.info.packageName).apply();
-        else
-            submit.edit().putBoolean(rule.info.packageName, rule.submit).apply();
-
         rule.last_modified = new Date().getTime();
         history.edit().putLong(rule.info.packageName + ":modified", rule.last_modified).apply();
 
@@ -867,9 +841,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
             NotificationManagerCompat.from(context).cancel(rule.info.applicationInfo.uid);
             ServiceSinkhole.reload("rule changed", context);
         }
-
-        if (rule.submit)
-            ServiceJob.submit(rule, context);
     }
 
     @Override

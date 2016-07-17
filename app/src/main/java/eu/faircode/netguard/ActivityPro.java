@@ -273,7 +273,6 @@ public class ActivityPro extends AppCompatActivity {
         TextView tvSpeed = (TextView) findViewById(R.id.tvSpeed);
         TextView tvTheme = (TextView) findViewById(R.id.tvTheme);
         TextView tvAll = (TextView) findViewById(R.id.tvAll);
-        CheckBox cbSubmit = (CheckBox) findViewById(R.id.cbSubmit);
         LinearLayout llChallenge = (LinearLayout) findViewById(R.id.llChallenge);
 
         btnLog.setVisibility(IAB.isPurchased(SKU_LOG, this) ? View.GONE : View.VISIBLE);
