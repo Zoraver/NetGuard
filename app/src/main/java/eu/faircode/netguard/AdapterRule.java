@@ -95,7 +95,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
     private List<Rule> listAll = new ArrayList<>();
     private List<Rule> listFiltered = new ArrayList<>();
 
-    private static final String cUrl = "https://crowd.netguard.me/";
     private static final int cTimeOutMs = 15000;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -127,7 +126,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
         public CheckBox cbApply;
 
         public Button btnRelated;
-        public ImageButton ibFetch;
         public ImageButton ibSettings;
         public ImageButton ibLaunch;
 
@@ -177,7 +175,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
             cbApply = (CheckBox) itemView.findViewById(R.id.cbApply);
 
             btnRelated = (Button) itemView.findViewById(R.id.btnRelated);
-            ibFetch = (ImageButton) itemView.findViewById(R.id.ibFetch);
             ibSettings = (ImageButton) itemView.findViewById(R.id.ibSettings);
             ibLaunch = (ImageButton) itemView.findViewById(R.id.ibLaunch);
 
@@ -441,92 +438,6 @@ public class AdapterRule extends RecyclerView.Adapter<AdapterRule.ViewHolder> im
                 Intent main = new Intent(context, ActivityMain.class);
                 main.putExtra(ActivityMain.EXTRA_SEARCH, Integer.toString(rule.info.applicationInfo.uid));
                 context.startActivity(main);
-            }
-        });
-
-        // Fetch settings
-        holder.ibFetch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AsyncTask<Rule, Object, Object>() {
-                    @Override
-                    protected void onPreExecute() {
-                        holder.ibFetch.setEnabled(false);
-                    }
-
-                    @Override
-                    protected Object doInBackground(Rule... rules) {
-                        HttpsURLConnection urlConnection = null;
-                        try {
-                            JSONObject json = new JSONObject();
-
-                            json.put("type", "fetch");
-                            json.put("country", Locale.getDefault().getCountry());
-                            json.put("netguard", Util.getSelfVersionCode(context));
-                            json.put("fingerprint", Util.getFingerprint(context));
-
-                            JSONObject pkg = new JSONObject();
-                            pkg.put("name", rules[0].info.packageName);
-                            pkg.put("version_code", rules[0].info.versionCode);
-                            pkg.put("version_name", rules[0].info.versionName);
-
-                            JSONArray pkgs = new JSONArray();
-                            pkgs.put(pkg);
-                            json.put("package", pkgs);
-
-                            urlConnection = (HttpsURLConnection) new URL(cUrl).openConnection();
-                            urlConnection.setConnectTimeout(cTimeOutMs);
-                            urlConnection.setReadTimeout(cTimeOutMs);
-                            urlConnection.setRequestProperty("Accept", "application/json");
-                            urlConnection.setRequestProperty("Content-type", "application/json");
-                            urlConnection.setRequestMethod("POST");
-                            urlConnection.setDoInput(true);
-                            urlConnection.setDoOutput(true);
-
-                            Log.i(TAG, "Request=" + json.toString());
-                            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-                            out.write(json.toString().getBytes()); // UTF-8
-                            out.flush();
-
-                            int code = urlConnection.getResponseCode();
-                            if (code != HttpsURLConnection.HTTP_OK)
-                                throw new IOException("HTTP " + code);
-
-                            InputStreamReader isr = new InputStreamReader(urlConnection.getInputStream());
-                            String response = Util.readString(isr).toString();
-                            Log.i(TAG, "Response=" + response);
-                            JSONObject jfetched = new JSONObject(response);
-                            JSONArray jpkgs = jfetched.getJSONArray("package");
-                            for (int i = 0; i < jpkgs.length(); i++) {
-                                JSONObject jpkg = jpkgs.getJSONObject(i);
-                                String name = jpkg.getString("name");
-                                int wifi = jpkg.getInt("wifi");
-                                int wifi_screen = jpkg.getInt("wifi_screen");
-                                int other = jpkg.getInt("other");
-                                int other_screen = jpkg.getInt("other_screen");
-                                int roaming = jpkg.getInt("roaming");
-                                int devices = jpkg.getInt("devices");
-                                Log.i(TAG, "pkg=" + name + " wifi=" + wifi + "/" + wifi_screen + " other=" + other + "/" + other_screen + "/" + roaming + " devices=" + devices);
-                            }
-
-                        } catch (Throwable ex) {
-                            Log.e(TAG, ex.toString() + "\n" + Log.getStackTraceString(ex));
-                            return ex;
-
-                        } finally {
-                            if (urlConnection != null)
-                                urlConnection.disconnect();
-                        }
-
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Object result) {
-                        holder.ibFetch.setEnabled(true);
-                    }
-
-                }.execute(rule);
             }
         });
 
